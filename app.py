@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "a1b2c3d4e5f678901234567890abcdef"  # 必须设置 secret key 才能使用 session
 
 # 设置你的 DashScope API Key
-dashscope.api_key = "sk-4789ed940645494a973deeb7a50447a9"
+dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
 # Generation.model_name = "qwen-max"
 
 
