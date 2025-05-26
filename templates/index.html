@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>明镜高悬断案录</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #c62828;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            margin-top: 10px;
+            font-size: 1.1em;
+            font-style: italic;
+        }
+
+        .info-box {
+            background-color: #e0e0e0;
+            margin: 20px auto;
+            padding: 15px 20px;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .case-box {
+            background-color: #fffbe6;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 800px;
+            border-left: 5px solid #d4af37;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .case-box h3 {
+            margin-top: 0;
+        }
+
+        #chat-box {
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #ffffff;
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .message {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .user {
+            color: #0277bd;
+        }
+
+        .bot {
+            color: #2e7d32;
+        }
+
+        .input-area {
+            display: flex;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #send-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #c62828;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #send-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .init-button {
+            text-align: center;
+            margin: 20px;
+        }
+
+        button.init-case-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: #43a047;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button.init-case-btn:hover {
+            background-color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 头部红色块 -->
+<div class="header">
+    <h1>明镜高悬断案录</h1>
+    <p>— 尔俸尔禄，民膏民脂；下民易虐，上天难欺 —</p>
+</div>
+
+<!-- 青天大老爷提示 -->
+<div class="info-box">
+    <strong>你 (青天大老爷)</strong><br>
+    本官在此，定会查个水落石出。有何话要说，或有何证据，速速呈上！
+</div>
+
+<!-- 堂门衙役提示 -->
+<div class="info-box">
+    <strong>堂门衙役</strong><br>
+    堂上何人，所为何事？速速报上名来！
+</div>
+
+<!-- 开始审案按钮 -->
+<div class="init-button">
+    <button class="init-case-btn" onclick="initCase()">开始审案</button>
+</div>
+
+<!-- 案件展示 -->
+<div class="case-box">
+    <h3>📜 案议掌书记</h3>
+    <p><strong>【案情卷宗】</strong></p>
+    <p><strong>原告：</strong>张小宛（张一勺之女）</p>
+    <p><strong>被告：</strong>周二狗（暂列）、钱有才（暂列）、孙老板及未知嫌疑人</p>
+    <p><strong>案由：</strong>福满楼名厨张一勺厨房离奇暴毙，死因不明</p>
+    <p><strong>张小宛：</strong>"大人！求求您为我爹爹做主啊！我爹今早还好好的，去厨房准备午市的菜，我稍后去送茶，就...就看到他倒在灶台边，怎么叫都不应了！"</p>
+    <p><strong>钱有才：</strong>"大人，师父他老人家突然去了，弟子们都非常伤心。师父最近是有些劳累，莫不是操劳过度，突发了什么急症？"</p>
+    <p><strong>周二狗：</strong>"大人，师父……师父平日里身子骨还算硬朗，只是偶尔会咳嗽几声。昨日还教我吊高汤的诀窍来着，怎么会……"</p>
+</div>
+
+<!-- 聊天窗口 -->
+<div id="chat-box"></div>
+
+<!-- 输入区域 -->
+<div class="input-area">
+    <input type="text" id="user-input" placeholder="输入你的问话..." />
+    <button id="send-btn" onclick="sendMessage()">传唤</button>
+</div>
+
+<script>
+let isInitialized = false;
+
+function initCase() {
+    fetch("/init_conversation", {
+        method: "POST"
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            isInitialized = true;
+            addMessage("案件已加载完毕，你可以开始审讯了。", 'bot');
+        } else {
+            addMessage("初始化失败：" + data.message, 'bot');
+        }
+    })
+    .catch(error => {
+        addMessage("请求失败：" + error.message, 'bot');
+    });
+}
+
+function sendMessage() {
+    if (!isInitialized) {
+        addMessage("请先点击「开始审案」加载案件信息。", 'bot');
+        return;
+    }
+
+    const input = document.getElementById("user-input");
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessage(message, 'user');
+    input.value = "";
+
+    fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            return response.json();
+        } else {
+            return response.text().then(text => {
+                throw new Error("非 JSON 响应：" + text);
+            });
+        }
+    })
+    .then(data => {
+        console.log("✅ 成功响应数据：", data);
+
+        if (data.reply) {
+            // 使用 innerHTML 来支持换行显示
+            const formattedReply = data.reply.replace(/\n/g, "<br>");
+            addMessage(formattedReply, 'bot');
+        } else {
+            addMessage("⚠️ 模型未返回有效回复。原始数据：" + JSON.stringify(data), 'bot');
+        }
+    })
+    .catch(error => {
+        console.error("❌ 请求失败：", error);
+        addMessage("请求失败：" + error.message, 'bot');
+    });
+}
+
+function addMessage(text, sender) {
+    const chatBox = document.getElementById("chat-box");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "message " + sender;
+
+    if (sender === 'user') {
+        msgDiv.innerHTML = "你: " + text;
+    } else {
+        // 去掉 Qwen-Max: 前缀，直接显示 text
+        msgDiv.innerHTML = text;
+    }
+
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+</script>
+
+</body>
+</html>
