@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session
 from dashscope import Generation
 import dashscope
+import os
 
 app = Flask(__name__)
 app.secret_key = "a1b2c3d4e5f678901234567890abcdef"  # 必须设置 secret key 才能使用 session
@@ -29,7 +30,7 @@ def chat():
     history = session.get("history", [])
 
     # 构建角色设定提示（每次都传入）
-    role_setting = """你是古代衙门中的一员，现在正在审理一起命案：
+    role_setting = """请你进行角色扮演，在接下来的游戏中，我当判官审理一起命案：
 
 【案情卷宗】
 
@@ -45,17 +46,19 @@ def chat():
 
 周二狗："大人，师父……师父平日里身子骨还算硬朗，只是偶尔会咳嗽几声。昨日还教我吊高汤的诀窍来着，怎么会……"
 
-请你在接下来的对话中，根据我的身份扮演不同角色进行回应。我问谁，你就以谁的身份作答，回答格式如下：
+在接下来的对话中，我将扮演判官。你扮演其他人进行作答，回答格式如下：
 
 特别注意：
-1. 你只能以角色身份说话，不能以助手身份引导剧情。
-2. 不要使用“请问你想问我什么”、“我可以告诉你更多”等引导性语言。
+1. 不要使用“请问你想问我什么”、“我可以告诉你更多”等引导性语言。
+2. 回答时不限一个角色回答，请你根据情景自由选择谁来作答，但不能作为判官来回答，因为我扮演判官。
 3. 回复格式如下：
 
 【场景】...（叙述当前发生的事）
 
-【角色】...：“...”
-
+【角色1】...：“...”
+【角色2】...：“...”
+【角色3】...：“...”
+ ......
 """
 
     # 拼接完整 prompt
@@ -104,4 +107,4 @@ def chat():
         return jsonify({"error": str(e), "reply": "模型调用失败，请稍后再试。"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000)
